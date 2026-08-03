@@ -1,0 +1,33 @@
+{
+  "name": "emmajs",
+  "version": "1.0.0",
+  "description": "EmmaJs is a architecture for web applications using React",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "react",
+    "router",
+    "state",
+    "hooks",
+    "typescript",
+    "microframework",
+    "web applications"
+  ],
+  "author": "Jesus Humberto Mayta Ccapa",
+  "private": true,
+  "license": "ISC",
+  "type": "commonjs",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.1",
+    "eslint": "^10.8.0",
+    "globals": "^17.8.0",
+    "typescript-eslint": "^8.65.0"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "create-emma-app",
+  "version": "1.0.0",
+  "description": "CLI to create emma apps",
+  "type": "module",
+  "bin": {
+    "create-emma-app": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "keywords": [],
+  "author": "Jesus Humberto Mayta Ccapa",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "typescript": "^5.7.0"
+  }
+}

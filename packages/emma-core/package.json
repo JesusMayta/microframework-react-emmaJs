@@ -1,0 +1,47 @@
+{
+  "name": "emma-core",
+  "version": "1.0.0",
+  "description": "EmmaJS runtime - modular architecture for React",
+  "type": "module",
+  "bin": {
+    "emma": "dist/cli/index.js"
+  },
+  "main": "./dist/emma/index.js",
+  "types": "./dist/emma/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/emma/index.d.ts",
+      "default": "./dist/emma/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "license": "ISC",
+  "peerDependencies": {
+    "react": ">=19.2.7",
+    "react-dom": ">=19.2.7",
+    "react-router": "^8.3.0",
+    "zustand": "^5.0.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router": "^8.3.0",
+    "typescript": "^5.7.0",
+    "zustand": "^5.0.0"
+  }
+}
