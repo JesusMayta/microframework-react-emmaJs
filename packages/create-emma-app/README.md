@@ -4,22 +4,28 @@ Generador oficial de proyectos **EmmaJS**. Crea un proyecto React 19 + Vite + Ty
 
 ## Uso
 
+Para obtener siempre la última versión del CLI, usa `@latest`:
+
 ```bash
-npx create-emma-app
+npx create-emma-app@latest
 ```
 
 También funciona con:
 
 ```bash
-npm create emma-app
+npm create emma-app@latest
 ```
+
+> **Importante:** `npx create-emma-app` (sin `@latest`) usa la versión cacheada por npm y **no verifica** si hay una más nueva. Añade siempre `@latest`, o limpia el caché con `npm cache clean --force`, para generar apps con la última versión.
 
 O instalando el CLI de forma global:
 
 ```bash
-npm install -g create-emma-app
+npm install -g create-emma-app@latest
 create-emma-app
 ```
+
+Para actualizar una instalación global existente: `npm install -g create-emma-app@latest`. (`npm update -g` puede quedarse con la versión en caché.)
 
 ## Preguntas interactivas
 
@@ -49,8 +55,10 @@ npm run dev
 - **React 19 + Vite + TypeScript** con configuración lista (tsconfig, vite.config).
 - **emma-core**: el runtime del microframework (rutas, estado global y CLI `emma`).
 - **react-router** y **zustand** como dependencias del proyecto.
-- **Landing de presentación** con el logo de EmmaJS, los colores de marca (`#ffdfa9`, `#95bfd2`, `#2b425a`) y un demo de estado global.
+- **Landing de presentación** (`src/shared/pages/LandingPage`) con el logo de EmmaJS, los colores de marca (`#ffdfa9`, `#95bfd2`, `#2b425a`) y un demo de estado global.
+- **Store de ejemplo** (`src/shared/stores/counterStore`) creado con `createEmmaStore`.
 - **Páginas 404 y 403** (`src/shared/pages`) con el mismo estilo de marca.
+- **`App.tsx` solo con enrutamiento**: rutas raíz, auto-rutas de módulos y comodín 404.
 - **Favicon** propio (`public/emmaIcon.ico`).
 - **Estructura modular** lista para usar:
 
@@ -62,8 +70,8 @@ src/
 │   ├── components/
 │   ├── guards/
 │   ├── hooks/
-│   ├── pages/              # NotFoundPage (404), ForbiddenPage (403)
-│   ├── stores/
+│   ├── pages/              # LandingPage, NotFoundPage (404), ForbiddenPage (403)
+│   ├── stores/             # counterStore (ejemplo con createEmmaStore)
 │   └── utils/
 └── styles/
     ├── globals.css
@@ -73,14 +81,26 @@ src/
 
 ## Generar código con `emma`
 
-Dentro del proyecto generado, el CLI `emma` (instalado junto con emma-core) te permite generar código:
+Dentro del proyecto generado, el CLI `emma` (instalado junto con emma-core) te permite generar código. El binario se instala en `node_modules/.bin`, que **no está en el PATH** de tu terminal, así que debes invocarlo con `npx`:
 
 ```bash
-emma generate module shop          # módulo completo con ejemplo
-emma generate page Producto shop   # página dentro de un módulo
-emma generate component Header     # componente compartido
-emma generate guard RequireAuth    # guard de acceso
+npx emma generate module shop          # módulo completo con ejemplo
+npx emma generate page Producto shop   # página dentro de un módulo
+npx emma generate component Header     # componente compartido
+npx emma generate guard RequireAuth    # guard de acceso
 ```
+
+> `npx emma ...` ejecuta el binario local del proyecto. No necesitas instalar nada más.
+
+### ¿Usar `emma` sin `npx`?
+
+Si prefieres escribir directamente `emma generate ...`, instala el CLI de forma global:
+
+```bash
+npm install -g emma-core
+```
+
+> Nota: la instalación global también instala los `peerDependencies` de emma-core (`react`, `react-dom`, `react-router`, `zustand`) en el entorno global, aunque el CLI no los necesita para generar código. Si no quieres eso, usa `npx emma ...`.
 
 ## Documentación
 

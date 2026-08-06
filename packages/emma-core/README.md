@@ -5,7 +5,7 @@ Núcleo de **EmmaJS**: un microframework de arquitectura modular para React. Agr
 ## Características
 
 - **Rutas declarativas**: componentes `EmmaRouter`, `EmmaRoutes`, `EmmaLink`, `EmmaNavLink` y `EmmaNavigate` sobre react-router.
-- **Estado global ligero**: `createEmmaStore` y `useEmmaStore` sobre zustand.
+- **Estado global ligero**: `createEmmaStore` sobre zustand.
 - **Arquitectura modular**: módulos autocontenidos en `src/modules`, cada uno con sus páginas, componentes, hooks, servicios, rutas y store.
 - **CLI generador**: `emma generate module|page|component|guard`.
 - **Auto-rutas**: las rutas de `src/modules/**/routes/index.{ts,tsx}` se registran automáticamente con `import.meta.glob`.
@@ -73,7 +73,7 @@ export function Nav() {
 ### 3. Estado global
 
 ```tsx
-import { createEmmaStore, useEmmaStore } from 'emma-core';
+import { createEmmaStore } from 'emma-core';
 
 interface CounterState {
   count: number;
@@ -86,7 +86,7 @@ const useCounterStore = createEmmaStore<CounterState>()((set) => ({
 }));
 
 export function Counter() {
-  const count = useEmmaStore(useCounterStore, (s) => s.count);
+  const count = useCounterStore((s) => s.count);
   return (
     <button onClick={() => useCounterStore.getState().increment()}>{count}</button>
   );
@@ -107,6 +107,64 @@ export function ProductoPage() {
 }
 ```
 
+### 5. Rutas anidadas y layouts protegidos
+
+`EmmaRoutes` soporta `children` e `index` (como `RouteObject`). Envuelve **una vez** una ruta padre con un guard/layout y todos los hijos heredan la protección:
+
+```tsx
+// src/App.tsx
+import { EmmaRouter, EmmaRoutes, EmmaOutlet } from 'emma-core';
+import type { EmmaRoute } from 'emma-core';
+import RequireAuth from './shared/guards/RequireAuth';
+import AdminLayout from './modules/admin/components/AdminLayout';
+
+const routes: EmmaRoute[] = [
+  { path: '/', element: <HomePage /> },
+  {
+    path: '/admin',
+    element: (
+      <RequireAuth roles={['admin']}>
+        <AdminLayout />
+      </RequireAuth>
+    ),
+    children: [
+      { index: true, element: <AdminDashboard /> },
+      { path: 'users', element: <AdminUsers /> },
+      { path: 'reports', element: <AdminReports /> },
+    ],
+  },
+  { path: '*', element: <NotFoundPage /> },
+];
+
+export default function App() {
+  return (
+    <EmmaRouter>
+      <EmmaRoutes routes={routes} />
+    </EmmaRouter>
+  );
+}
+```
+
+El layout debe renderizar `<EmmaOutlet />` en el punto donde se inserta el hijo de la ruta actual:
+
+```tsx
+// AdminLayout.tsx
+import { EmmaOutlet } from 'emma-core';
+
+export default function AdminLayout() {
+  return (
+    <div>
+      <nav>...</nav>
+      <main>
+        <EmmaOutlet />
+      </main>
+    </div>
+  );
+}
+```
+
+Así no repites el guard por cada ruta: `/admin`, `/admin/users` y `/admin/reports` quedan protegidas con una sola declaración.
+
 ## API
 
 ### Componentes
@@ -114,10 +172,11 @@ export function ProductoPage() {
 | Componente | Descripción |
 |---|---|
 | `EmmaRouter` | Proveedor de enrutamiento (`BrowserRouter`). |
-| `EmmaRoutes` | Renderiza un arreglo de `EmmaRoute[]`. |
+| `EmmaRoutes` | Renderiza un arreglo de `EmmaRoute[]`, con soporte de rutas anidadas. |
 | `EmmaLink` | Enlace declarativo (`Link`). |
 | `EmmaNavLink` | Enlace con estado activo (`NavLink`). |
 | `EmmaNavigate` | Redirección declarativa (`Navigate`). |
+| `EmmaOutlet` | Renderiza el hijo de la ruta actual (para rutas anidadas / layouts). |
 
 ### Hooks
 
@@ -135,8 +194,7 @@ export function ProductoPage() {
 
 | Función | Descripción |
 |---|---|
-| `createEmmaStore` | Crea un store de zustand. |
-| `useEmmaStore` | Suscribe un componente al store. |
+| `createEmmaStore` | Crea un store de zustand; devuelve un hook que se usa directamente con un selector: `useMiStore((s) => s.campo)`. |
 
 ### Tipos
 
@@ -146,12 +204,16 @@ export function ProductoPage() {
 
 ## CLI
 
+El binario `emma` se instala en `node_modules/.bin` (no está en el PATH de la terminal). Invícalo con `npx` dentro de tu proyecto:
+
 ```bash
-emma generate module <nombre>            # módulo completo con ejemplo
-emma generate page <Pagina> <modulo>     # página dentro de un módulo
-emma generate component <Nombre>         # componente compartido (src/shared/components)
-emma generate guard <Nombre>             # guard de acceso + authStore
+npx emma generate module <nombre>        # módulo completo con ejemplo
+npx emma generate page <Pagina> <modulo> # página dentro de un módulo
+npx emma generate component <Nombre>     # componente compartido (src/shared/components)
+npx emma generate guard <Nombre>         # guard de acceso + authStore
 ```
+
+Si prefieres escribir `emma ...` directamente, instálalo de forma global (`npm install -g emma-core`). Ten en cuenta que la instalación global también instala los `peerDependencies` (`react`, `react-dom`, `react-router`, `zustand`).
 
 ### Estructura que genera `emma generate module`
 

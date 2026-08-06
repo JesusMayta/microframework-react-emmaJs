@@ -8,7 +8,6 @@ export {
 
 export {
     create as createEmmaStore,
-    useStore as useEmmaStore,
 } from 'zustand';
 
 export {
@@ -17,6 +16,7 @@ export {
     EmmaLink,
     EmmaNavLink,
     EmmaNavigate,
+    EmmaOutlet,
 } from './createRouter.js';
 
 export { useEmmaRoute, useEmmaNavLink } from './hooks.js';

@@ -2,7 +2,9 @@
 
 **Microframework de arquitectura modular para React.** EmmaJS agrupa el enrutamiento declarativo (sobre react-router), el estado global (sobre zustand) y un generador de código, todo bajo una API propia con la marca `Emma` / `useEmma*`.
 
-EmmaJS organiza tu aplicación en **módulos autocontenidos**: cada módulo tiene sus páginas, componentes, hooks, servicios, rutas y store. Las rutas se registran automáticamente y el CLI genera el código de ejemplo listo para usar.
+EmmaJS organiza tu aplicación en **módulos autocontenidos**: cada módulo tiene sus páginas, componentes, hooks, servicios, rutas y store. Las rutas se registran automáticamente (`import.meta.glob`) y el CLI genera el código de ejemplo listo para usar.
+
+**Publicado en npm:** [`emma-core`](https://www.npmjs.com/package/emma-core) y [`create-emma-app`](https://www.npmjs.com/package/create-emma-app).
 
 ## Repositorio
 
@@ -23,16 +25,18 @@ Cada paquete tiene su propio README con documentación detallada.
 ## Inicio rápido
 
 ```bash
-# 1. Crea un proyecto
-npx create-emma-app
+# 1. Crea un proyecto (usa @latest para evitar la versión cacheada por npm)
+npx create-emma-app@latest
 
 # 2. Entra y arranca el servidor de desarrollo
 cd <tu-proyecto>
 npm run dev
 
 # 3. Genera un módulo con el CLI
-emma generate module shop
+npx emma generate module shop
 ```
+
+La app generada queda lista para escalar: `App.tsx` solo define las rutas (raíz, auto-rutas de módulos y 404), la landing vive en `src/shared/pages/LandingPage.tsx` y el estado de ejemplo en `src/shared/stores/counterStore.ts`.
 
 ## Desarrollo local (monorepo)
 
@@ -56,20 +60,22 @@ src/
 │       └── store/              # estado global del módulo
 └── shared/                     # código compartido
     ├── components/
-    ├── pages/                  # NotFoundPage (404), ForbiddenPage (403)
-    ├── guards/
+    ├── pages/                  # LandingPage, NotFoundPage (404), ForbiddenPage (403)
+    ├── guards/                 # p. ej. RequireAuth (protege rutas y layouts)
     ├── hooks/
-    ├── stores/
+    ├── stores/                 # p. ej. counterStore, authStore
     └── utils/
 ```
+
+`EmmaRoutes` soporta **rutas anidadas** (`children` e `index`): envuelve una vez una ruta padre con un guard o layout y todos los hijos heredan la protección, renderizando el contenido con `EmmaOutlet`.
 
 ## CLI
 
 ```bash
-emma generate module <nombre>            # módulo completo con ejemplo
-emma generate page <Pagina> <modulo>     # página dentro de un módulo
-emma generate component <Nombre>         # componente compartido
-emma generate guard <Nombre>             # guard de acceso + authStore
+npx emma generate module <nombre>            # módulo completo con ejemplo
+npx emma generate page <Pagina> <modulo>     # página dentro de un módulo
+npx emma generate component <Nombre>         # componente compartido
+npx emma generate guard <Nombre>             # guard de acceso + authStore
 ```
 
 ## Licencia

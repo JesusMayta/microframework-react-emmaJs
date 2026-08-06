@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +16,7 @@ const cliOptions = (isTailwind: boolean = false) => ([
   },
   {
     type: 'Global State',
-    description: 'Estado global ligero con zustand via useEmmaStore.'
+    description: 'Estado global ligero con zustand via createEmmaStore.'
   },
   {
     type: 'Modular Architecture',
@@ -33,9 +32,35 @@ const cliOptions = (isTailwind: boolean = false) => ([
   },
 ]);
 
+const removeStaleJs = (dir: string) => {
+  const src = path.join(dir, 'src');
+  if (!fs.existsSync(src)) return;
+
+  const walk = (current: string) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile() && entry.name.endsWith('.js')) {
+        const base = entry.name.slice(0, -3);
+        if (
+          fs.existsSync(path.join(current, base + '.ts')) ||
+          fs.existsSync(path.join(current, base + '.tsx'))
+        ) {
+          fs.rmSync(full, { force: true });
+        }
+      }
+    }
+  };
+
+  walk(src);
+};
+
 export const generateProject = (answers: Answers) => {
 
   const dir = path.resolve(answers.projectName);
+
+  removeStaleJs(dir);
 
   const folders = [
     'public',
@@ -72,31 +97,7 @@ export const generateProject = (answers: Answers) => {
     fs.copyFileSync(iconSource, path.join(dir, 'public/emmaIcon.ico'));
   };
 
-  const localCore = path.join(__dirname, '..', '..', 'emma-core');
-
-  let emmaCoreDep = '^1.0.0';
-
-  if (fs.existsSync(path.join(localCore, 'package.json'))) {
-    try {
-      const packOutput = execSync('npm pack --silent', {
-        cwd: localCore,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore'],
-      });
-      const tarballName = packOutput
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean)
-        .pop();
-      if (tarballName) {
-        fs.copyFileSync(path.join(localCore, tarballName), path.join(dir, tarballName));
-        fs.rmSync(path.join(localCore, tarballName), { force: true });
-        emmaCoreDep = `file:./${tarballName}`;
-      }
-    } catch {
-      emmaCoreDep = `file:${path.resolve(localCore).replace(/\\/g, '/')}`;
-    }
-  }
+  const emmaCoreDep = '^1.0.0';
 
   const deps: Record<string, string> = {
     react: '^19.2.7',
@@ -182,6 +183,7 @@ Thumbs.db
           moduleResolution: 'bundler',
           jsx: 'react-jsx',
           strict: true,
+          noEmit: true,
           esModuleInterop: true,
           skipLibCheck: true,
           forceConsistentCasingInFileNames: true,
@@ -280,7 +282,7 @@ createRoot(document.getElementById("root")!).render(
     '/// <reference types="vite/client" />',
   );
 
-  const appContent = generateAppContent(answers);
+  const appContent = generateAppContent();
 
   fs.writeFileSync(path.join(dir, 'src/App.tsx'), appContent);
 
@@ -623,8 +625,13 @@ const landingCss = (projectName: string): string => {
   )
     .join("\n");
 
-  return `function LandingPage() {
-  const count = useEmmaStore(useCounterStore, (s) => s.count);
+  return `import logoUrl from '../../assets/emmaLogo.png';
+import reactLogoUrl from '../../assets/reactLogo.webp';
+import '../../styles/landing.css';
+import { useCounterStore } from '../stores/counterStore';
+
+export default function LandingPage() {
+  const count = useCounterStore((s) => s.count);
 
   return (
     <div className="landing">
@@ -663,7 +670,7 @@ ${cards}
             </button>
           </div>
           <pre className="landing-code">
-            <code>{"$ emma generate module <name>\\n$ emma generate page <Page> <module>\\n$ emma generate component <Name>\\n$ emma generate guard <Name>"}</code>
+            <code>{"$ npx emma generate module <name>\\n$ npx emma generate page <Page> <module>\\n$ npx emma generate component <Name>\\n$ npx emma generate guard <Name>"}</code>
           </pre>
         </section>
 
@@ -740,8 +747,12 @@ const landingTailwind = (projectName: string): string => {
   )
     .join('\n');
 
-  return `function LandingPage() {
-  const count = useEmmaStore(useCounterStore, (s) => s.count);
+  return `import logoUrl from '../../assets/emmaLogo.png';
+import reactLogoUrl from '../../assets/reactLogo.webp';
+import { useCounterStore } from '../stores/counterStore';
+
+export default function LandingPage() {
+  const count = useCounterStore((s) => s.count);
 
   return (
     <div className="min-h-screen bg-linear-to-b from-[#ffdfa9] via-[#f5e8cf] to-[#95bfd2] text-[#2b425a]">
@@ -788,7 +799,7 @@ ${cards}
             </button>
           </div>
           <pre className="mt-6 overflow-x-auto rounded-xl bg-[#2b425a] p-4 text-left text-sm text-[#ffdfa9]">
-            <code>{"$ emma generate module <name>\\n$ emma generate page <Page> <module>\\n$ emma generate component <Name>\\n$ emma generate guard <Name>"}</code>
+            <code>{"$ npx emma generate module <name>\\n$ npx emma generate page <Page> <module>\\n$ npx emma generate component <Name>\\n$ npx emma generate guard <Name>"}</code>
           </pre>
         </div>
 
@@ -799,9 +810,33 @@ ${cards}
 }`
 };
 
+const COUNTER_STORE = `import { createEmmaStore } from 'emma-core';
+
+interface CounterState {
+  count: number;
+};
+
+export const useCounterStore = createEmmaStore<CounterState>()((set) => ({
+  count: 0,
+}));
+`;
+
 export const writeSharedPages = (answers: Answers, dir: string) => {
 
   fs.mkdirSync(path.join(dir, 'src/shared/pages'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'src/shared/stores'), { recursive: true });
+
+  fs.writeFileSync(
+    path.join(dir, 'src/shared/stores/counterStore.ts'),
+    COUNTER_STORE,
+  );
+
+  fs.writeFileSync(
+    path.join(dir, 'src/shared/pages/LandingPage.tsx'),
+    answers.tailwind
+      ? landingTailwind(answers.projectName)
+      : landingCss(answers.projectName),
+  );
 
   if (answers.tailwind) {
     fs.writeFileSync(
@@ -825,24 +860,11 @@ export const writeSharedPages = (answers: Answers, dir: string) => {
   }
 };
 
-export const generateAppContent = (answers: Answers): string => {
+export const generateAppContent = (): string => {
 
-  const projectName = answers.projectName;
-
-  const landing = answers.tailwind
-    ? landingTailwind(projectName)
-    : landingCss(projectName);
-
-  const cssImport = answers.tailwind
-    ? `import logoUrl from './assets/emmaLogo.png';
-import reactLogoUrl from './assets/reactLogo.webp';`
-    : `import logoUrl from './assets/emmaLogo.png';
-import reactLogoUrl from './assets/reactLogo.webp';
-import './styles/landing.css';`;
-
-  return `${cssImport}
-import { EmmaRouter, EmmaRoutes, createEmmaStore, useEmmaStore } from 'emma-core';
+  return `import { EmmaRouter, EmmaRoutes } from 'emma-core';
 import type { EmmaRoute } from 'emma-core';
+import LandingPage from './shared/pages/LandingPage';
 import NotFoundPage from './shared/pages/NotFoundPage';
 import ForbiddenPage from './shared/pages/ForbiddenPage';
 
@@ -852,16 +874,6 @@ const routeModules = import.meta.glob("/src/modules/**/routes/index.{ts,tsx}", {
 });
 
 const autoRoutes = Object.values(routeModules).flat() as EmmaRoute[];
-
-interface CounterState {
-  count: number;
-};
-
-const useCounterStore = createEmmaStore<CounterState>()((set) => ({
-  count: 0,
-}));
-
-${landing}
 
 export default function App() {
   const routes: EmmaRoute[] = [
