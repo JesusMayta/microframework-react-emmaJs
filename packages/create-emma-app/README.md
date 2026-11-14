@@ -55,9 +55,9 @@ npm run dev
 - **React 19 + Vite + TypeScript** con configuración lista (tsconfig, vite.config).
 - **emma-core**: el runtime del microframework (rutas, estado global y CLI `emma`).
 - **react-router** y **zustand** como dependencias del proyecto.
-- **Landing de presentación** (`src/shared/pages/LandingPage`) con el logo de EmmaJS, los colores de marca (`#ffdfa9`, `#95bfd2`, `#2b425a`) y un demo de estado global.
+- **Landing de presentación** (`src/shared/pages/LandingPage`) rediseñada con hero, bento de características, demo real de estado global y sección del CLI, con los colores de marca (`#ffdfa9`, `#95bfd2`, `#2b425a`). Se genera en dos versiones equivalentes: Tailwind CSS v4 o CSS vanilla.
 - **Store de ejemplo** (`src/shared/stores/counterStore`) creado con `createEmmaStore`.
-- **Páginas 404 y 403** (`src/shared/pages`) con el mismo estilo de marca.
+- **Páginas 404 y 403** (`src/shared/pages`) con fondo ambiental, tarjeta glass, el código de error en degradado y acciones de recuperación, en el mismo lenguaje visual que la landing.
 - **`App.tsx` solo con enrutamiento**: rutas raíz, auto-rutas de módulos y comodín 404.
 - **Favicon** propio (`public/emmaIcon.ico`).
 - **Estructura modular** lista para usar:
